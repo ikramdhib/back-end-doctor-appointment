@@ -14,5 +14,6 @@ router.get('/appointmentDetails/:appointmentID', appointementController.getAppoi
 router.put('/postponeAppoinment/:appointmentID', appointementController.rescheduleAppointmentById);
 router.put('/updateAppointment/:appointmentID' , appointementController.updateAppointmentTypeById);
 router.get('/getuserDetails/:id',userController.getUserWithAvailabilities);
+router.get('/todayAppointment/:patientID',appointementController.getTodayAppointment);
 
 module.exports = router;

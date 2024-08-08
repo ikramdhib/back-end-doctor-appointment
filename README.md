@@ -26,12 +26,6 @@ npm run start
 npm run test
 ```
 
-## Author
-
-👤 **Ikram Dhib**
-
-* Github: [@ikramdhib](https://github.com/ikramdhib)
-
 ## Show your support
 
 Give a ⭐️ if this project helped you!

@@ -337,6 +337,42 @@ const getAppointmentByPatientId= async (req , res) =>{
 
   }
 
+  const getTodayAppointment = async(req , res) =>{
+    try{
+
+      const {patientID} = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(patientID)) {
+        return res.status(400).json({ error: 'Invalid patient ID' });
+      }
+
+      // Obtenir la date d'aujourd'hui sans l'heure
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    // Définir la fin de la journée
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+
+    const appointments = await Appointment.find({
+      dateAppointment: {
+        $gte: todayStart,
+        $lte: todayEnd
+      }
+    }).populate('doctor').exec();
+
+    if (!appointments) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+
+    res.status(200).json(appointments);
+
+    }catch(error){
+      console.error("Erreur lors de la récupération des rendez-vous :", error);
+      res.status(500).json({ error: 'An error occurred while retrieving appointments' });
+    }
+  }
+
 
 module.exports ={
     createAppointment ,
@@ -348,5 +384,6 @@ module.exports ={
     deleteAppointmentByID,
     getAppointmentDetails,
     rescheduleAppointmentById,
-    updateAppointmentTypeById
+    updateAppointmentTypeById,
+    getTodayAppointment
 }
