@@ -2,6 +2,7 @@ const User = require ('../models/userModel')
 const bcrypt = require("bcrypt");
 const { randomString } = require("../utils/random");
 const { verifyEmail } = require("../utils/sendEmail");
+const Availability = require('../models/availability');
 
 const getAllUsers = async (req,res)=>{
     //select users without password
@@ -133,6 +134,33 @@ const deleteUser = async (req, res) => {
   }
 };
 
+
+
+//get doctor details with availibity 
+
+const getUserWithAvailabilities = async (req, res) => {
+  try {
+    const {id} = req.params
+      // Récupérer l'utilisateur par ID
+      const user = await User.findById(id);
+      if (!user) {
+        return res.status(400).json({ error: 'user not found' });
+      }
+
+      // Récupérer les détails de chaque disponibilité
+      const availabilities = await Availability.find({
+          _id: { $in: user.availabilities }
+      });
+
+      // Retourner l'utilisateur avec les détails des disponibilités
+      res.status(200).json({user , availabilities});
+  } catch (error) {
+      console.error('Error retrieving user with availabilities:', error);
+      res.status(400).json({error:error.message});
+  }
+};
+
+
 module.exports ={
     getAllUsers,
     getUser,
@@ -140,5 +168,6 @@ module.exports ={
     createUser,
     updateUser,
     deleteUser,
-    getUserById
+    getUserById,
+    getUserWithAvailabilities
 }

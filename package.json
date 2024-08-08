@@ -27,6 +27,8 @@
     "nodemailer": "^6.9.14",
     "nodemon": "^3.1.4",
     "react-flatpickr": "^3.10.13",
-    "react-transition-group": "^4.4.5"
+    "react-transition-group": "^4.4.5",
+    "socket.io": "^4.7.5",
+    "socket.io-client": "^4.7.5"
   }
 }

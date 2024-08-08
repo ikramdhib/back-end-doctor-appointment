@@ -4,7 +4,15 @@ const morgan =require('morgan')
 const dotenv = require('dotenv');
 const connectDb = require('./config/db');
 const cors=require("cors")
-const corsOptions =require("./config/corsOptions");
+
+
+
+
+// Configuration des options CORS
+const corsOptions = {
+    origin: 'http://localhost:4200', // Origine autorisée
+    optionsSuccessStatus: 200 // Pour les navigateurs plus anciens
+  };
 
 //dotenv config
 dotenv.config();
@@ -29,7 +37,9 @@ app.use(cors());
 //routes
 app.use("/auth",require("./routes/authRoute"))
 app.use('/users',require('./routes/userRoute'));
-app.use("/appointment",require('./routes/appointmentRoute'))
+app.use("/appointment",require('./routes/appointmentRoute'));
+app.use("/availability",require("./routes/availibiltyRoute"));
+
 
 
 //port

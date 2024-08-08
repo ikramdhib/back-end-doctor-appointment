@@ -1,11 +1,13 @@
 const Appointment = require("../models/Appointment");
 const moment = require('moment-timezone');
 const mongoose = require('mongoose');
+const sendEmail = require("../utils/sendEmail")
+
 
 // CreatAppointment API
 const createAppointment = async (req , res) =>{
     try{
-        const { dateTime, hourAppointment ,duration, status, type, doctor, patient } = req.body;
+        const { dateTime, hourAppointment , type, doctor, patient } = req.body;
 
      // Combinez la date et l'heure en un seul objet Date
      const dateAppointment = moment.tz(`${dateTime} ${hourAppointment}`, 'YYYY-MM-DD HH:mm').toDate(); 
@@ -24,6 +26,8 @@ const createAppointment = async (req , res) =>{
         })
 
         const savedAppointment = await newAppointment.save();
+
+       
         res.status(200).json(savedAppointment);
     }catch (error){
         res.status(400).json({error:error.message});
@@ -48,11 +52,13 @@ const findAppointmentByDateTime = async (doctorId,dateAppointment) => {
   const getAppointmentByDoctorId = async (req , res) =>{
 
     try {
-    const {doctorID} = req.body ;
+    const {doctorID} = req.params ;
 
     const appointments = await Appointment.find({
       doctor : doctorID
     })
+    .populate('patient')
+    .exec();
 
     if(!appointments.length){
       return res.status(400).json({ error: 'there is no appointments for you' });
@@ -72,11 +78,11 @@ const findAppointmentByDateTime = async (doctorId,dateAppointment) => {
 const getAppointmentByPatientId= async (req , res) =>{
 
     try {
-    const {patientID} = req.body ;
+    const {patientID} = req.params ;
 
     const appointments = await Appointment.find({
       patient : patientID
-    })
+    }).populate('doctor').exec();
 
     if(!appointments.length){
       return res.status(400).json({ error: 'there is no appointments for you' });
@@ -105,7 +111,9 @@ const getAppointmentByPatientId= async (req , res) =>{
       const appointments = await Appointment.find({ 
         doctor : doctorID,
         status : status 
-       });
+       })
+       .populate('patient')
+       .exec();
   
       if (!appointments.length) {
         return res.status(404).json({ message: 'No appointments found with this status' });
@@ -167,13 +175,31 @@ const getAppointmentByPatientId= async (req , res) =>{
         appointmentID,
         { status : appointmentStatus },
         { new: true, runValidators: true }
-      );
+      ).populate('doctor')
+      .populate('patient').exec();
 
       if (!updatedAppointment) {
         return res.status(404).json({ error: 'Appointment not found' });
       }
   
       res.status(200).json(updatedAppointment);
+
+      
+      const date = updatedAppointment.dateAppointment.toISOString().split('T')[0];
+      const time = updatedAppointment.dateAppointment.toISOString().split('T')[1].split('.')[0];
+
+      if(updatedAppointment.status=="PLANIFIED"){
+
+        sendEmail.sendConfirmationEmail(updatedAppointment.patient.email, updatedAppointment.patient.firstname+' '
+          +updatedAppointment.patient.lastname,updatedAppointment.doctor.firstname+' '+updatedAppointment.doctor.lastname ,
+           date, time)
+      }else if (updatedAppointment.status=="CANCLED"){
+
+        sendEmail.sendCancelMail(updatedAppointment.patient.email, updatedAppointment.patient.firstname+' '
+          +updatedAppointment.patient.lastname,updatedAppointment.doctor.firstname+' '+updatedAppointment.doctor.lastname ,
+           date, time)
+
+      }
 
     }catch (error){
       console.error("Erreur lors de la récupération des rendez-vous :", error);

@@ -28,9 +28,9 @@ npm run test
 
 ## Author
 
-👤 **Karima Maaoui**
+👤 **Ikram Dhib**
 
-* Github: [@karimamaaoui](https://github.com/karimamaaoui)
+* Github: [@ikramdhib](https://github.com/ikramdhib)
 
 ## Show your support
 

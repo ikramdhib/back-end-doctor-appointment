@@ -36,7 +36,8 @@ const userSchema = new mongoose.Schema(
         },
         verificationCode: {
             type: String
-        }
+        },
+        availabilities: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Availability' }]
 
     },{
         timestamps:true
