@@ -1,7 +1,6 @@
 const appointmentType= {
     ONLINE : 'ONLINE',
-    IN_PERSON : 'IN_PERSON',
-    BOTH:'BOTH'
+    IN_PERSON : 'IN_PERSON'
 
 }
 

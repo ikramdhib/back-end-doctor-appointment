@@ -268,10 +268,10 @@ const getAppointmentByPatientId= async (req , res) =>{
     try{
 
       const {appointmentID} = req.params;
-      const { date , time }= req.body ;
+      const { date , time , type }= req.body ;
 
-      if (!appointmentID || !date || !time) {
-        return res.status(400).json({ error: 'Appointment ID, date, and time are required' });
+      if (!appointmentID || !date || !time || !type) {
+        return res.status(400).json({ error: 'Appointment ID, date, time or type are required' });
       }
 
       if (!mongoose.Types.ObjectId.isValid(appointmentID)) {
@@ -282,7 +282,7 @@ const getAppointmentByPatientId= async (req , res) =>{
 
       const updatedAppointment = await Appointment.findByIdAndUpdate(
         appointmentID,
-        { dateAppointment: dateTime },
+        { dateAppointment: dateTime , type : type},
         { new: true, runValidators: true }
       );
 
@@ -373,6 +373,38 @@ const getAppointmentByPatientId= async (req , res) =>{
     }
   }
 
+  const getAppointmentWithDoctorIDAndDate = async(req , res)=>{
+    try{
+      const {doctorID} = req.params;
+      const {date} = req.query;
+      console.log(doctorID)
+      console.log(date)
+
+      if (!doctorID || !date) {
+        return res.status(400).json({ error: 'doctorId and date are required' });
+      }
+  
+      // Convertir la date en début et fin de journée
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+  
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
+  
+      // Trouver les rendez-vous pour le médecin à cette date
+      const appointments = await Appointment.find({
+        doctor: doctorID,
+        dateAppointment: { $gte: startOfDay, $lte: endOfDay }
+      }).exec();
+
+      res.json(appointments);
+
+    }catch(error){
+      console.error("Erreur lors de la récupération des rendez-vous :", error);
+      res.status(500).json({ error: 'An error occurred while retrieving appointments' });
+    }
+  }
+
 
 module.exports ={
     createAppointment ,
@@ -385,5 +417,6 @@ module.exports ={
     getAppointmentDetails,
     rescheduleAppointmentById,
     updateAppointmentTypeById,
-    getTodayAppointment
+    getTodayAppointment,
+    getAppointmentWithDoctorIDAndDate
 }
