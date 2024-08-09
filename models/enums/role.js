@@ -1,6 +1,6 @@
 const role= {
     ADMIN : 'ADMIN',
-    CLIENT : 'CLIENT',
+    PATIENT : 'PATIENT',
     DOCTOR : 'DOCTOR' 
 
 }

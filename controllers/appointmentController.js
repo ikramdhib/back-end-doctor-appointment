@@ -1,7 +1,9 @@
 const Appointment = require("../models/Appointment");
 const moment = require('moment-timezone');
 const mongoose = require('mongoose');
-const sendEmail = require("../utils/sendEmail")
+const sendEmail = require("../utils/sendEmail");
+const appointmentStatus = require("../models/enums/AppointmentStatus");
+const User = require("../models/userModel");
 
 
 // CreatAppointment API
@@ -189,15 +191,61 @@ const getAppointmentByPatientId= async (req , res) =>{
       const time = updatedAppointment.dateAppointment.toISOString().split('T')[1].split('.')[0];
 
       if(updatedAppointment.status=="PLANIFIED"){
+       const email = updatedAppointment.patient.email;
+       const subject = "Confirm your Appointment";
+        const html =`
+            <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <p style="font-size: 16px;">Dear <strong>${updatedAppointment.patient.firstname} ${updatedAppointment.patient.lastname}strong>,</p>
+                <p style="font-size: 14px;">
+                    This email is to inform you that your appointment with Dr. <strong>${updatedAppointment.doctor.firstname} ${updatedAppointment.doctor.lastname}</strong> has been confirmed on:
+                </p>
+                <p style="font-size: 14px;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" style="color: #4caf50; margin-right: 5px; vertical-align: middle;">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 1v14M2 8h12"></path>
+                    </svg>
+                    <strong>Date:</strong> ${date}
+                </p>
+                <p style="font-size: 14px;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" style="color: #4caf50; margin-right: 5px; vertical-align: middle;">
+                      <circle cx="8" cy="8" r="7" stroke="black" stroke-width="2" fill="none" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 4v4l3 3"></path>
+                    </svg>
+                    <strong>Time:</strong> ${time}
+                </p>
+                <p style="font-size: 14px;">Thank you,</p>
+                <p style="font-size: 14px;"><strong>Doctor Appointment Agency</strong></p>
+            </div>
+        `  
+        sendEmail.sendMails(email,subject,text,html);
 
-        sendEmail.sendConfirmationEmail(updatedAppointment.patient.email, updatedAppointment.patient.firstname+' '
-          +updatedAppointment.patient.lastname,updatedAppointment.doctor.firstname+' '+updatedAppointment.doctor.lastname ,
-           date, time)
       }else if (updatedAppointment.status=="CANCLED"){
 
-        sendEmail.sendCancelMail(updatedAppointment.patient.email, updatedAppointment.patient.firstname+' '
-          +updatedAppointment.patient.lastname,updatedAppointment.doctor.firstname+' '+updatedAppointment.doctor.lastname ,
-           date, time)
+       const email = updatedAppointment.patient.email;
+       const subject = "Your Appointment Has Been Canceled";
+        const html =`
+            <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                    <p style="font-size: 16px;">Dear <strong>${updatedAppointment.patient.firstname} ${updatedAppointment.patient.lastname}</strong>,</p>
+                    <p style="font-size: 14px;">This email is to inform you that your appointment with Dr. <strong>${updatedAppointment.doctor.firstname} ${updatedAppointment.doctor.lastname}</strong> has been <span style="color: #e74c3c;">canceled</span> on:</p>
+                    <p style="font-size: 14px;">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" style="color: #e74c3c; margin-right: 5px; vertical-align: middle;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 1v14M2 8h12"></path>
+                        </svg>
+                        <strong>Date:</strong> ${date}
+                    </p>
+                    <p style="font-size: 14px;">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" style="color: #e74c3c; margin-right: 5px; vertical-align: middle;">
+                            <circle cx="8" cy="8" r="7" stroke="black" stroke-width="2" fill="none"></circle>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 4v4l3 3"></path>
+                        </svg>
+                        <strong>Time:</strong> ${time}
+                    </p>
+                    <p style="font-size: 14px;">We apologize for any inconvenience this may cause. If you have any questions or need to reschedule, please contact us.</p>
+                    <p style="font-size: 14px;">Thank you,</p>
+                    <p style="font-size: 14px;"><strong>Doctor Appointment Agency</strong></p>
+                </div>
+        `  
+
+        sendEmail.sendMails(email,subject,text,html);
 
       }
 
@@ -405,6 +453,117 @@ const getAppointmentByPatientId= async (req , res) =>{
     }
   }
 
+  const cancelAppointmentPatient = async(req, res)=>{
+
+    try{
+    const {appointmentID} = req.params;
+
+      if(!appointmentID || !appointmentStatus){
+
+        return res.status(400).json({ error: 'Appointment ID and status are required' });
+
+      }
+
+      const updatedAppointment = await Appointment.findByIdAndUpdate(
+        appointmentID,
+        { status : appointmentStatus.CANCLED },
+        { new: true, runValidators: true }
+      ).populate('doctor')
+      .populate('patient').exec();
+
+      if (!updatedAppointment) {
+        return res.status(404).json({ error: 'Appointment not found' });
+      }
+  
+      res.status(200).json(updatedAppointment);
+
+      
+      const date = updatedAppointment.dateAppointment.toISOString().split('T')[0];
+      const time = updatedAppointment.dateAppointment.toISOString().split('T')[1].split('.')[0];
+
+      const email = updatedAppointment.doctor.email;
+      const subject = "Your Appointment Has Been Canceled";
+       const html =`
+           <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                   <p style="font-size: 16px;">Dear Dr. <strong>${updatedAppointment.doctor.firstname} ${updatedAppointment.doctor.lastname}</strong>,</p>
+                   <p style="font-size: 14px;">This email is to inform you that your appointment with Ms. <strong>${updatedAppointment.patient.firstname} ${updatedAppointment.patient.lastname}</strong> has been <span style="color: #e74c3c;">canceled</span> on:</p>
+                   <p style="font-size: 14px;">
+                       <svg width="16" height="16" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" style="color: #e74c3c; margin-right: 5px; vertical-align: middle;">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 1v14M2 8h12"></path>
+                       </svg>
+                       <strong>Date:</strong> ${date}
+                   </p>
+                   <p style="font-size: 14px;">
+                       <svg width="16" height="16" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" style="color: #e74c3c; margin-right: 5px; vertical-align: middle;">
+                           <circle cx="8" cy="8" r="7" stroke="black" stroke-width="2" fill="none"></circle>
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 4v4l3 3"></path>
+                       </svg>
+                       <strong>Time:</strong> ${time}
+                   </p>
+                   <p style="font-size: 14px;">We apologize for any inconvenience this may cause. If you have any questions or need to reschedule, please contact us.</p>
+                   <p style="font-size: 14px;">Thank you,</p>
+                   <p style="font-size: 14px;"><strong>Doctor Appointment Agency</strong></p>
+               </div>
+       ` ;
+     sendEmail.sendMails(email,subject,text,html);
+
+   }catch (error){
+     console.error("Erreur lors de la récupération des rendez-vous :", error);
+     res.status(500).json({ error: 'An error occurred while retrieving appointments' });
+   }
+  }
+
+
+  const creationAppointmentWithDoctorIDandPatinetEamil = async(req , res)=>{
+    try{
+      const {doctor} = req.params;
+      const{date , time , type , patientEmail} = req.body;
+
+      if(!date || !time || !type || !patientEmail){
+        return res.status(404).json({ error: 'date , time , type and email patient are requested ' });
+      }
+
+      const dateAppointment = moment.tz(`${date} ${time}`, 'YYYY-MM-DD HH:mm').toDate(); 
+
+      const patientObject = await User.findOne({ email: patientEmail }).exec();
+      const doctorObject = await User.findById(doctor);
+      const patient = patientObject._id;
+      const status = appointmentStatus.PLANIFIED;
+
+
+      const newAppointment = new Appointment ({
+        dateAppointment,
+        status,
+        type,
+        doctor,
+        patient
+    })
+
+    const savedAppointment = await newAppointment.save();
+
+      const subject = 'Appointment Scheduled';
+      const html =`
+      <p>Dear Patient,</p>
+      <p>We would like to inform you that Dr. ${doctorObject.lastname}  ${doctorObject.firstname}
+      has scheduled an appointment for you.</p>
+      <p><strong>Date:</strong> ${date}</p>
+      <p><strong>Time:</strong> ${time}</p>
+      <p>If you have any questions, please feel free to contact us.</p>
+      <p>Best regards,</p>
+      <p>Your Medical Team</p>
+    `;
+
+      sendEmail.sendMails(patientEmail , subject  , html);
+   
+    res.status(200).json(savedAppointment);
+
+
+    }catch (error){
+     console.error("Erreur lors de la récupération des rendez-vous :", error);
+     res.status(500).json({ error: 'An error occurred while retrieving appointments' });
+   }
+  }
+
 
 module.exports ={
     createAppointment ,
@@ -418,5 +577,7 @@ module.exports ={
     rescheduleAppointmentById,
     updateAppointmentTypeById,
     getTodayAppointment,
-    getAppointmentWithDoctorIDAndDate
+    getAppointmentWithDoctorIDAndDate,
+    cancelAppointmentPatient,
+    creationAppointmentWithDoctorIDandPatinetEamil
 }
