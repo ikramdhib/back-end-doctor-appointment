@@ -565,6 +565,47 @@ const getAppointmentByPatientId= async (req , res) =>{
   }
 
 
+  const updateDateAppointment = async (req , res)=>{
+    try{
+
+      const {appointmentID} = req.params ; 
+      const {appointmentDate} = req.body;
+
+      if(!appointmentDate || ! appointmentID){
+        return res.status(400).json({ error: 'appointment ID and appointment date are required' });
+      }
+
+      const appointment = await Appointment.findById(appointmentID);
+    if (!appointment) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+
+    // Conserver l'heure de l'ancien rendez-vous
+    const oldDate = new Date(appointment.dateAppointment);
+    const newDate = new Date(appointmentDate);
+
+    const hours = oldDate.getUTCHours();
+    const minutes = oldDate.getUTCMinutes();
+    const seconds = oldDate.getUTCSeconds();
+
+    // Appliquer l'heure de l'ancien rendez-vous à la nouvelle date
+    newDate.setUTCHours(hours, minutes, seconds);
+
+    // Mettre à jour la date du rendez-vous
+    appointment.dateAppointment = newDate.toISOString();
+
+    // Sauvegarder le rendez-vous mis à jour dans la base de données
+    await appointment.save();
+
+    res.status(200).json(appointment);
+
+    }catch (error){
+     console.error("Erreur lors de la récupération des rendez-vous :", error);
+     res.status(500).json({ error: 'An error occurred while retrieving appointments' });
+   }
+  }
+
+
 module.exports ={
     createAppointment ,
     getAppointmentByDoctorId,
@@ -579,5 +620,6 @@ module.exports ={
     getTodayAppointment,
     getAppointmentWithDoctorIDAndDate,
     cancelAppointmentPatient,
-    creationAppointmentWithDoctorIDandPatinetEamil
+    creationAppointmentWithDoctorIDandPatinetEamil,
+    updateDateAppointment
 }

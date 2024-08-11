@@ -1,5 +1,6 @@
 const Availability = require("../models/availability");
 const User = require("../models/userModel");
+const mongoose = require('mongoose');
 
 const createAvailibityForDoctorID = async (req , res)=>{
     
@@ -35,6 +36,26 @@ const createAvailibityForDoctorID = async (req , res)=>{
         res.status(400).json({error:error.message});
     }
 }
+/*
+const getAvailabilityWithDoctorID = async (req ,res)=>{
+    try{
+
+        const {doctorID} =req.params;
+        if (!mongoose.Types.ObjectId.isValid(doctorID)) {
+            return res.status(400).json({ error: 'Invalid doctor ID' });
+          }
+
+          const availabilities = await Availability.find({
+            doctor : doctorID
+          })
+
+    }catch (error) {
+        console.error('Error creating and assigning availability:', error);
+        res.status(400).json({error:error.message});
+    }
+}*/
+
+
 
 module.exports ={
     createAvailibityForDoctorID,

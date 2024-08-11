@@ -18,5 +18,6 @@ router.get('/todayAppointment/:patientID', appointementController.getTodayAppoin
 router.get('/doctorAvailibilties/:doctorID/date' , appointementController.getAppointmentWithDoctorIDAndDate);
 router.put('/cancelAppointment/:appointmentID' , appointementController.cancelAppointmentPatient);
 router.post('/scheduleAppointment/:doctor' , appointementController.creationAppointmentWithDoctorIDandPatinetEamil);
+router.put('/changeDate/:appointmentID' , appointementController.updateDateAppointment);
 
 module.exports = router;
