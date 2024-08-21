@@ -118,7 +118,7 @@ const getAppointmentByPatientId= async (req , res) =>{
        .exec();
   
       if (!appointments.length) {
-        return res.status(404).json({ message: 'No appointments found with this status' });
+        return res.json({ message: 'No appointments found with this status' });
       }
   
       res.status(200).json(appointments);
@@ -216,7 +216,7 @@ const getAppointmentByPatientId= async (req , res) =>{
                 <p style="font-size: 14px;"><strong>Doctor Appointment Agency</strong></p>
             </div>
         `  
-        sendEmail.sendMails(email,subject,text,html);
+        sendEmail.sendMails(email,subject,html);
 
       }else if (updatedAppointment.status=="CANCLED"){
 
@@ -245,7 +245,7 @@ const getAppointmentByPatientId= async (req , res) =>{
                 </div>
         `  
 
-        sendEmail.sendMails(email,subject,text,html);
+        sendEmail.sendMails(email,subject,html);
 
       }
 
@@ -505,7 +505,7 @@ const getAppointmentByPatientId= async (req , res) =>{
                    <p style="font-size: 14px;"><strong>Doctor Appointment Agency</strong></p>
                </div>
        ` ;
-     sendEmail.sendMails(email,subject,text,html);
+     sendEmail.sendMails(email,subject,html);
 
    }catch (error){
      console.error("Erreur lors de la récupération des rendez-vous :", error);
@@ -606,6 +606,7 @@ const getAppointmentByPatientId= async (req , res) =>{
   }
 
 
+
 module.exports ={
     createAppointment ,
     getAppointmentByDoctorId,
@@ -621,5 +622,5 @@ module.exports ={
     getAppointmentWithDoctorIDAndDate,
     cancelAppointmentPatient,
     creationAppointmentWithDoctorIDandPatinetEamil,
-    updateDateAppointment
+    updateDateAppointment,
 }

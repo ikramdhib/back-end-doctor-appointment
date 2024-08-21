@@ -161,6 +161,27 @@ const getUserWithAvailabilities = async (req, res) => {
 };
 
 
+const getDoctors = async(req , res) => {
+  try {
+      // Chercher tous les utilisateurs ayant le rôle 'DOCTOR'
+      const doctors = await User.find({ role: 'DOCTOR' }, 'firstname lastname email');
+      
+      // Si vous voulez formater les données de retour pour une notification
+      const user = doctors.map(doctor => ({
+          fullName: `${doctor.firstname} ${doctor.lastname}`,
+          email: doctor.email,
+          id : doctor._id
+      }));
+      
+      res.status(200).json(user);
+      
+  } catch (error) {
+      console.error('Erreur lors de la récupération des docteurs:', error);
+      res.status(400).json({error:error.message});
+  }
+}
+
+
 module.exports ={
     getAllUsers,
     getUser,
@@ -169,5 +190,6 @@ module.exports ={
     updateUser,
     deleteUser,
     getUserById,
-    getUserWithAvailabilities
+    getUserWithAvailabilities,
+    getDoctors
 }

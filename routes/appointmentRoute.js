@@ -19,5 +19,7 @@ router.get('/doctorAvailibilties/:doctorID/date' , appointementController.getApp
 router.put('/cancelAppointment/:appointmentID' , appointementController.cancelAppointmentPatient);
 router.post('/scheduleAppointment/:doctor' , appointementController.creationAppointmentWithDoctorIDandPatinetEamil);
 router.put('/changeDate/:appointmentID' , appointementController.updateDateAppointment);
+//router.post('/create-meeting' , appointementController.createZoomMeeting);
+router.get('/all/doctors' , userController.getDoctors);
 
 module.exports = router;

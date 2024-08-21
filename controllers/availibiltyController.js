@@ -36,27 +36,95 @@ const createAvailibityForDoctorID = async (req , res)=>{
         res.status(400).json({error:error.message});
     }
 }
-/*
-const getAvailabilityWithDoctorID = async (req ,res)=>{
+const deleteAvailabilityWithId = async (req , res)=>{
     try{
 
-        const {doctorID} =req.params;
-        if (!mongoose.Types.ObjectId.isValid(doctorID)) {
-            return res.status(400).json({ error: 'Invalid doctor ID' });
-          }
+        const {id} = req.params;
 
-          const availabilities = await Availability.find({
-            doctor : doctorID
-          })
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ error: 'Invalid  ID' });
+          }
+    
+          const deletedAvailability = await Availability.findByIdAndDelete(id);
+    
+          if (!deletedAvailability) {
+            return res.status(404).json({ error: 'Availability not found' });
+          }
+      
+          res.status(200).json({ message: 'Availability deleted successfully' });
 
     }catch (error) {
-        console.error('Error creating and assigning availability:', error);
+        console.error('Error deleting availability:', error);
         res.status(400).json({error:error.message});
     }
-}*/
+
+}
 
 
+const editAvailability = async (req , res)=>{
+    try{
+
+        const { id } = req.params;
+        const updatedData = req.body;
+    
+        // Rechercher la disponibilité par ID
+        const availability = await Availability.findById(id);
+        
+        if (!availability) {
+          return res.status(404).json({ message: 'Availability not found' });
+        }
+         // Mettre à jour les champs
+        availability.date = updatedData.date || availability.date;
+        availability.timeSlots = updatedData.timeSlots || availability.timeSlots;
+
+        // Sauvegarder les modifications
+        await availability.save();
+
+    res.status(200).json({ message: 'Availability updated successfully', availability });
+    }catch (error) {
+        console.error('Error updating availability:', error);
+        res.status(500).json({ message: 'Error updating availability' });
+      }
+    
+}
+
+const deleteOldAvailabilityWithDoctorID = async (req , res) =>{
+    try{
+        const {id} = req.params;
+        // Obtenir le docteur par son ID
+        const doctor = await User.findById(id).populate('availabilities');
+
+        if (!doctor) {
+            return res.status(404).json({ message: 'doctor not found' });
+        }
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Mettre les heures à 00:00 pour comparer uniquement les dates
+
+        // Filtrer les disponibilités qui sont avant aujourd'hui
+        const availabilitiesToRemove = doctor.availabilities.filter(availability => {
+            const availabilityDate = new Date(availability.date);
+            return availabilityDate < today;
+        });
+
+        // Supprimer les disponibilités anciennes
+        const availabilityIdsToRemove = availabilitiesToRemove.map(av => av._id);
+        await Availability.deleteMany({ _id: { $in: availabilityIdsToRemove } });
+
+        // Mettre à jour le docteur en supprimant les anciennes disponibilités de sa liste
+        doctor.availabilities = doctor.availabilities.filter(av => !availabilityIdsToRemove.includes(av._id));
+        await doctor.save();
+           res.status(200).json({ message: 'Availability updated successfully', availability });
+    }catch (error) {
+        console.error('Error updating availability:', error);
+        res.status(500).json({ message: 'Error updating availability' });
+      }
+}
+ 
 
 module.exports ={
     createAvailibityForDoctorID,
+    deleteAvailabilityWithId,
+    editAvailability,
+    deleteOldAvailabilityWithDoctorID
 }
