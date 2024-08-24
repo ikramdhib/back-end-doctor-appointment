@@ -2,8 +2,10 @@ const express =require('express')
 const morgan =require('morgan')
 const dotenv = require('dotenv');
 const connectDb = require('./config/db');
-const cors=require("cors")
-
+const cors=require("cors");
+const appointmentController = require('./controllers/appointmentController');
+const availibiltyController = require('./controllers/availibiltyController');
+const cron = require('node-cron');
 
 
 
@@ -52,14 +54,16 @@ io.on('connection', (socket) => {
 
 
 //routes
-
 app.use("/auth",require("./routes/authRoute"))
 app.use('/users',require('./routes/userRoute'));
 app.use("/appointment",require('./routes/appointmentRoute'));
 app.use("/availability",require("./routes/availibiltyRoute"));
 app.use("/notification",require("./routes/notificationRoute"));
 
+//appeller le service reminder 
+cron.schedule('0 8 * * *', appointmentController.sendReminders);
 
+cron.schedule('0 0 * * *', availibiltyController.deleteOldAvailabilityForAllDoctors);
 
 
 //port

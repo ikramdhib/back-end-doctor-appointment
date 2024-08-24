@@ -88,43 +88,48 @@ const editAvailability = async (req , res)=>{
     
 }
 
-const deleteOldAvailabilityWithDoctorID = async (req , res) =>{
-    try{
-        const {id} = req.params;
-        // Obtenir le docteur par son ID
-        const doctor = await User.findById(id).populate('availabilities');
+const deleteOldAvailabilityForAllDoctors = async () => {
+    try {
+        const doctors = await User.find({ role: 'DOCTOR' }).populate('availabilities');
 
-        if (!doctor) {
-            return res.status(404).json({ message: 'doctor not found' });
+        if (!doctors || doctors.length === 0) {
+            console.log('No doctors found.');
+            return;
         }
 
         const today = new Date();
         today.setHours(0, 0, 0, 0); // Mettre les heures à 00:00 pour comparer uniquement les dates
 
-        // Filtrer les disponibilités qui sont avant aujourd'hui
-        const availabilitiesToRemove = doctor.availabilities.filter(availability => {
-            const availabilityDate = new Date(availability.date);
-            return availabilityDate < today;
-        });
+        for (const doctor of doctors) {
+            // Filtrer les disponibilités qui sont avant aujourd'hui
+            const availabilitiesToRemove = doctor.availabilities.filter(availability => {
+                const availabilityDate = new Date(availability.date);
+                return availabilityDate < today;
+            });
 
-        // Supprimer les disponibilités anciennes
-        const availabilityIdsToRemove = availabilitiesToRemove.map(av => av._id);
-        await Availability.deleteMany({ _id: { $in: availabilityIdsToRemove } });
+            // Supprimer les disponibilités anciennes
+            const availabilityIdsToRemove = availabilitiesToRemove.map(av => av._id);
+            if (availabilityIdsToRemove.length > 0) {
+                await Availability.deleteMany({ _id: { $in: availabilityIdsToRemove } });
 
-        // Mettre à jour le docteur en supprimant les anciennes disponibilités de sa liste
-        doctor.availabilities = doctor.availabilities.filter(av => !availabilityIdsToRemove.includes(av._id));
-        await doctor.save();
-           res.status(200).json({ message: 'Availability updated successfully', availability });
-    }catch (error) {
-        console.error('Error updating availability:', error);
-        res.status(500).json({ message: 'Error updating availability' });
-      }
-}
+                // Mettre à jour le docteur en supprimant les anciennes disponibilités de sa liste
+                doctor.availabilities = doctor.availabilities.filter(av => !availabilityIdsToRemove.includes(av._id));
+                await doctor.save();
+                
+                console.log(`Deleted old availabilities for doctor: ${doctor._id}`);
+            }
+        }
+
+        console.log('Old availabilities deleted successfully for all doctors.');
+    } catch (error) {
+        console.error('Error deleting old availabilities:', error);
+    }
+};
  
 
 module.exports ={
     createAvailibityForDoctorID,
     deleteAvailabilityWithId,
     editAvailability,
-    deleteOldAvailabilityWithDoctorID
+    deleteOldAvailabilityForAllDoctors
 }

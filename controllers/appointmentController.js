@@ -6,6 +6,7 @@ const appointmentStatus = require("../models/enums/AppointmentStatus");
 const User = require("../models/userModel");
 
 
+
 // CreatAppointment API
 const createAppointment = async (req , res) =>{
     try{
@@ -294,7 +295,7 @@ const getAppointmentByPatientId= async (req , res) =>{
         return res.status(400).json({ error: 'Invalid appointment ID' });
       }
 
-      const appointment = await Appointment.findById(appointmentID);
+      const appointment = await Appointment.findById(appointmentID).populate('doctor').populate('patient');
 
     if (!appointment) {
       return res.status(404).json({ error: 'Appointment not found' });
@@ -606,6 +607,51 @@ const getAppointmentByPatientId= async (req , res) =>{
   }
 
 
+  const sendReminders = async () => {
+    try {
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
+  
+      // Obtenez le début et la fin de la journée de demain pour inclure tous les rendez-vous
+      const startOfTomorrow = new Date(tomorrow.setHours(0, 0, 0, 0));
+      const endOfTomorrow = new Date(tomorrow.setHours(23, 59, 59, 999));
+      
+      const appointments = await Appointment.find({
+        dateAppointment: {
+          $gte: startOfTomorrow,
+          $lte: endOfTomorrow,
+        }
+      }).populate('patient').exec();
+  
+      console.log(appointments,"***************");
+
+      if (appointments.length === 0) {
+        console.log('No appointments found for tomorrow.');
+      } else {
+      
+      appointments.forEach((appointment) => {
+         const time = appointment.dateAppointment.toISOString().split('T')[1].split('.')[0];
+
+         const to = appointment.patient.email;
+         const subject= 'Reminder of your medical appointment';
+         const html = `Dear ${appointment.patient.firstname} ${appointment.patient.lastname}
+         ,\n\nThis is a reminder that you have a medical appointment scheduled for tomorrow at ${time}.\n\nThank you!`
+       
+          sendEmail.sendMails(to , subject  , html);
+  
+          console.log("executeeeeee")
+      });
+    }
+    } catch (error) {
+      console.error('Erreur lors de la récupération des rendez-vous:', error);
+    }
+  };
+  
+  // Planifier la tâche à 8h chaque jour
+ // cron.schedule('* * * * *', sendReminders);
+
+
 
 module.exports ={
     createAppointment ,
@@ -623,4 +669,5 @@ module.exports ={
     cancelAppointmentPatient,
     creationAppointmentWithDoctorIDandPatinetEamil,
     updateDateAppointment,
+    sendReminders
 }

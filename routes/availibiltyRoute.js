@@ -6,6 +6,5 @@ const availabilityController = require("../controllers/availibiltyController");
 router.post('/createAvailibility/:doctorId', availabilityController.createAvailibityForDoctorID);
 router.delete('/deleteAvailability/:id' , availabilityController.deleteAvailabilityWithId);
 router.put('/editAvailability/:id' , availabilityController.editAvailability);
-router.delete('/delete/old/one/:id' , availabilityController.deleteOldAvailabilityWithDoctorID);
 
 module.exports = router;
