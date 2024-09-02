@@ -1,40 +1,94 @@
-<h1 align="center">Welcome to doc-appoinment-doctor 👋</h1>
-<p>
-  <img alt="Version" src="https://img.shields.io/badge/version-1.0.0-blue.svg?cacheSeconds=2592000" />
-  <a href="#" target="_blank">
-    <img alt="License: ISC" src="https://img.shields.io/badge/License-ISC-yellow.svg" />
-  </a>
-</p>
+# Doctor Appointment Backend
 
-> This project is a web application built using the MERN stack (MongoDB, Express.js, React, and Node.js). It aims to provide a platform for managing doctor appointments and home visits.
+This is the backend API for the Doctor Appointment Management System, built with Node.js, Express, and MongoDB. The API handles authentication, doctor availability management, appointment scheduling, and notification services.
 
-## Install
+## Table of Contents
 
-```sh
-npm install
-```
+- [Features](#features)
+- [Technologies Used](#technologies-used)
+- [Getting Started](#getting-started)
+- [Project Structure](#project-structure)
+- [Environment Variables](#environment-variables)
+- [Contributing](#contributing)
+- [Contact](#contact)
 
-## Usage
+## Features
 
-```sh
-npm run start
-```
+- **User Authentication**: Secure login and registration for doctors and patients.
+- **Doctor Management**: CRUD operations for doctors, including availability scheduling.
+- **Appointment Management**: Patients can book, update, and cancel appointments with doctors.
+- **Notification System**: Real-time notifications for appointment status updates.
+- **API Security**: Implemented with JWT-based authentication.
 
-## Run tests
+## Technologies Used
 
-```sh
-npm run test
-```
+- **Node.js**: JavaScript runtime environment.
+- **Express**: Fast, unopinionated, minimalist web framework for Node.js.
+- **MongoDB**: NoSQL database for storing application data.
+- **Mongoose**: ODM library for MongoDB and Node.js.
+- **JWT (JSON Web Tokens)**: For securing API endpoints.
+- **Socket.IO**: Real-time bidirectional event-based communication for notifications.
 
-## Author
+## Getting Started
 
-👤 **Karima Maaoui**
+### Prerequisites
 
-* Github: [@karimamaaoui](https://github.com/karimamaaoui)
+Ensure you have the following installed on your machine:
 
-## Show your support
+- **Node.js** (v18.x or higher)
+- **MongoDB** (local or cloud instance)
 
-Give a ⭐️ if this project helped you!
+### Installation
 
-***
-_This README was generated with ❤️ by [readme-md-generator](https://github.com/kefranabg/readme-md-generator)_
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/ikramdhib/doctor-appointment-backend.git
+   
+2. Install dependencies:
+
+   ```bash
+   npm install
+## Environment Variables
+
+Create a ".env" file in the root directory and add the following environment variables:
+ 
+       PORT=3000
+      MONGO_URI=mongodb://localhost:27017/doctor-appointment
+      JWT_SECRET=your_jwt_secret
+
+- PORT: The port number on which the server will run.
+- MONGO_URI: The connection string for your MongoDB database.
+- JWT_SECRET: A secret key for signing JWT tokens.
+
+## Running the Server 
+   
+     npm start
+     
+## Running the Server 
+
+    .
+    ├── src/
+    │   ├── controllers/   # Controller functions to handle API requests
+    │   ├── models/        # Mongoose models for MongoDB
+    │   ├── routes/        # Express routes for different API endpoints
+    │   ├── middleware/    # Custom middleware for authentication and error handling
+    │   ├── utils/         # Utility functions and helpers
+    │   ├── app.js         # Main application file
+    ├── .env               # Environment variables
+    ├── package.json       # Node.js dependencies and scripts
+    ├── README.md          # Documentation
+
+    
+## Contributing
+
+Contributions are welcome! Please fork this repository and submit a pull request for any features, fixes, or improvements.
+
+## Contact
+
+For any inquiries or support, feel free to contact me:
+
+**Ikram Dhib**  
+- Email: [dhibikram50@gmail.com]
+- LinkedIn: [https://www.linkedin.com/in/dhib-ikram-3190051ab/]
+- GitHub: [https://github.com/ikramdhib]
