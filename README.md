@@ -74,7 +74,7 @@ Create a ".env" file in the root directory and add the following environment var
     │   ├── routes/        # Express routes for different API endpoints
     │   ├── middleware/    # Custom middleware for authentication and error handling
     │   ├── utils/         # Utility functions and helpers
-    │   ├── app.js         # Main application file
+    │   ├── server.js         # Main application file
     ├── .env               # Environment variables
     ├── package.json       # Node.js dependencies and scripts
     ├── README.md          # Documentation
