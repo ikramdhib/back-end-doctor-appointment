@@ -7,5 +7,5 @@ router.put('/seenNotification/:id' , notificationController.markNotificationAsSe
 router.get('/allNotifications/:userId' , notificationController.getNotificationsForUserNotSeen);
 router.get('/notifications/:userId' , notificationController.getAllNotificationUserID);
 router.delete('/deleteAllNotification/:userId' , notificationController.deleteAllNotifications);
-
+router.get('/recent/:userId', notificationController.getRecentNotifications);
 module.exports = router;

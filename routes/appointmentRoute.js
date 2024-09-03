@@ -14,12 +14,14 @@ router.get('/appointmentDetails/:appointmentID', appointementController.getAppoi
 router.put('/rescheduleAppoinment/:appointmentID', appointementController.rescheduleAppointmentById);
 router.put('/updateAppointment/:appointmentID' , appointementController.updateAppointmentTypeById);
 router.get('/getuserDetails/:id', userController.getUserWithAvailabilities);
-router.get('/todayAppointment/:patientID', appointementController.getTodayAppointment);
+router.get('/todayAppointment/:patientID', appointementController.getTodayAppointmentForPatient);
+router.get('/todayAppointmentDoctor/:doctorID', appointementController.getTodayAppointmentForDoctor);
 router.get('/doctorAvailibilties/:doctorID/date' , appointementController.getAppointmentWithDoctorIDAndDate);
 router.put('/cancelAppointment/:appointmentID' , appointementController.cancelAppointmentPatient);
 router.post('/scheduleAppointment/:doctor' , appointementController.creationAppointmentWithDoctorIDandPatinetEamil);
 router.put('/changeDate/:appointmentID' , appointementController.updateDateAppointment);
 //router.post('/create-meeting' , appointementController.createZoomMeeting);
 router.get('/all/doctors' , userController.getDoctors);
+router.get('/top-patients/:doctorId' ,appointementController.topTenPatient);
 
 module.exports = router;

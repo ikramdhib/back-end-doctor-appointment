@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const sendEmail = require("../utils/sendEmail");
 const appointmentStatus = require("../models/enums/AppointmentStatus");
 const User = require("../models/userModel");
-
+const ObjectId = mongoose.Types.ObjectId;
 
 
 // CreatAppointment API
@@ -386,7 +386,7 @@ const getAppointmentByPatientId= async (req , res) =>{
 
   }
 
-  const getTodayAppointment = async(req , res) =>{
+  const getTodayAppointmentForPatient = async(req , res) =>{
     try{
 
       const {patientID} = req.params;
@@ -407,8 +407,48 @@ const getAppointmentByPatientId= async (req , res) =>{
       dateAppointment: {
         $gte: todayStart,
         $lte: todayEnd
-      }
+      },
+      status:'PLANIFIED',
+      patient:patientID
     }).populate('doctor').exec();
+
+    if (!appointments) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+
+    res.status(200).json(appointments);
+
+    }catch(error){
+      console.error("Erreur lors de la récupération des rendez-vous :", error);
+      res.status(500).json({ error: 'An error occurred while retrieving appointments' });
+    }
+  }
+
+  const getTodayAppointmentForDoctor = async(req , res) =>{
+    try{
+
+      const {doctorID} = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(doctorID)) {
+        return res.status(400).json({ error: 'Invalid patient ID' });
+      }
+
+      // Obtenir la date d'aujourd'hui sans l'heure
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    // Définir la fin de la journée
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+
+    const appointments = await Appointment.find({
+      dateAppointment: {
+        $gte: todayStart,
+        $lte: todayEnd
+      },
+      status:'PLANIFIED',
+      doctor:doctorID
+    }).populate('patient').exec();
 
     if (!appointments) {
       return res.status(404).json({ error: 'Appointment not found' });
@@ -519,6 +559,12 @@ const getAppointmentByPatientId= async (req , res) =>{
     try{
       const {doctor} = req.params;
       const{date , time , type , patientEmail} = req.body;
+
+      console.log(date , "8888");
+
+      console.log(typeof(date),"++++++++++++++++++++++++++++++");
+      
+      
 
       if(!date || !time || !type || !patientEmail){
         return res.status(404).json({ error: 'date , time , type and email patient are requested ' });
@@ -647,11 +693,64 @@ const getAppointmentByPatientId= async (req , res) =>{
       console.error('Erreur lors de la récupération des rendez-vous:', error);
     }
   };
-  
-  // Planifier la tâche à 8h chaque jour
- // cron.schedule('* * * * *', sendReminders);
 
 
+  const updateAppointmentsStatus = async () => {
+    try {
+        const now = new Date();
+
+        const appointmentsToUpdate = await Appointment.updateMany(
+            { 
+                dateAppointment: { $lt: now }, 
+                status: "PLANIFIED" 
+            },
+            { 
+                $set: { status: "FINISHED" } 
+            }
+        );
+
+        console.log(`${appointmentsToUpdate.modifiedCount} appointments updated to FINISHED`);
+    } catch (error) {
+        console.error('Error updating appointment statuses:', error);
+    }
+};
+
+const topTenPatient=async(req,res)=>{
+  try {
+    const doctorId = req.params.doctorId;
+
+    const topPatients = await Appointment.aggregate([
+        { $match: { doctor: new mongoose.Types.ObjectId(doctorId) } },  // Filtrer par docteur
+        {
+            $group: {
+                _id: "$patient",  // Grouper par patient
+                visitCount: { $sum: 1 }  // Compter le nombre de visites
+            }
+        },
+        { $sort: { visitCount: -1 } },  // Trier par nombre de visites (du plus au moins)
+        { $limit: 10 }  // Limiter aux 10 patients les plus visités
+    ]);
+
+    const patientIds = topPatients.map(p => p._id);
+
+    // Récupérer les informations des utilisateurs associés à ces IDs
+    const patients = await User.find({ _id: { $in: patientIds } }, 'firstname lastname email');
+
+    // Fusionner les données
+    const result = topPatients.map(tp => {
+        const patient = patients.find(p => p._id.equals(tp._id));
+        return {
+            patient: patient,
+            visitCount: tp.visitCount
+        };
+    });
+
+    res.status(200).json(result);
+} catch (error) {
+    console.error("Error in topTenPatients:", error);
+    res.status(500).json({ message: 'Internal server error' });
+}
+}
 
 module.exports ={
     createAppointment ,
@@ -664,10 +763,13 @@ module.exports ={
     getAppointmentDetails,
     rescheduleAppointmentById,
     updateAppointmentTypeById,
-    getTodayAppointment,
+    getTodayAppointmentForPatient,
     getAppointmentWithDoctorIDAndDate,
     cancelAppointmentPatient,
     creationAppointmentWithDoctorIDandPatinetEamil,
     updateDateAppointment,
-    sendReminders
+    sendReminders,
+    updateAppointmentsStatus,
+    getTodayAppointmentForDoctor,
+    topTenPatient
 }

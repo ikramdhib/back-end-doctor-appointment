@@ -64,7 +64,7 @@ app.use("/notification",require("./routes/notificationRoute"));
 cron.schedule('0 8 * * *', appointmentController.sendReminders);
 
 cron.schedule('0 0 * * *', availibiltyController.deleteOldAvailabilityForAllDoctors);
-
+cron.schedule('* * * * *', appointmentController.updateAppointmentsStatus);
 
 //port
 const port= process.env.PORT || 5000

@@ -75,7 +75,22 @@ const deleteAllNotifications = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Error deleting notifications.', error });
   }
-};
+}
+
+const getRecentNotifications = async (req , res)=>{
+  try {
+    const userId = req.params.userId; // ID de l'utilisateur pour qui nous récupérons les notifications
+
+    const notifications = await Notification.find({ recipientId: userId })
+      .sort({ timestamp: -1 }) // Trier par date, du plus récent au plus ancien
+      .limit(5); // Limiter à 5 notifications
+
+    res.status(200).json(notifications);
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+}
 
 
 module.exports ={
@@ -83,5 +98,6 @@ module.exports ={
     getNotificationsForUserNotSeen,
     markNotificationAsSeen,
     getAllNotificationUserID,
-    deleteAllNotifications
+    deleteAllNotifications,
+    getRecentNotifications
 } 
